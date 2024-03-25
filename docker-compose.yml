@@ -56,7 +56,7 @@ services:
       #RELAY_IGNORE_DIRECT: "false"
 
       # Defines the relay band to use, helpful to auto-configure the frequencies to use. Possible values: eu868, ism2400. Defaults to eu868.
-      #RELAY_REGION: "eu868"
+      RELAY_REGION: "eu868"
 
       # Frequencies to use for relaying. If RELAY_REGION above is set these have correnponding defaults.
       #RELAY_FREQUENCIES: 868100000,868300000,868500000
