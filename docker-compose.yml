@@ -1,0 +1,90 @@
+services:
+
+  chirpstack-concentratord:
+    
+    container_name: chirpstack-concentratord
+    image: xoseperez/chirpstack-concentratord
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /tmp:/tmp
+    environment:
+      MODEL: "RAK7271"
+      INTERFACE: "USB"
+      #RESET_GPIO: 17
+      #POWER_EN_GPIO: 0
+      #HAS_GPS: 0
+      #REGION: "EU868"
+      #CHANNELS: "US915_0"
+      #DEBUG: "INFO"
+      #SOCKER_NAME: "concentratord"
+
+  chirpstack-gateway-relay:
+    
+    container_name: chirpstack-gateway-relay
+
+    # use pre-defined image
+    image: xoseperez/chirpstack-gateway-relay
+
+    # or comment out image: and build it yourself
+    #build:
+    #  context: .
+    #  args:
+    #    ARCH: amd64
+    #    VERSION: 4.0.0-test.9
+
+    restart: unless-stopped
+    privileged: true
+    #ipc: host
+    #user: "${PUID:-1000}:${PGID:-1000}"
+
+    depends_on:
+      - chirpstack-concentratord
+
+    volumes:
+      - /tmp:/tmp
+    
+    environment:
+
+      # Set debug level (TRACE, DEBUG, INFO, WARN, ERROR, OFF). Defaults to INFO.
+      LOGGING_LEVEL: "INFO"
+
+      # Set to "true" if this is a border gateway. Defaults to "false".
+      #RELAY_BORDER: "false"
+
+      # For border gateways, set to false to ignore direct messages (only relayed messages will be processed). Defaults to "false".
+      #RELAY_IGNORE_DIRECT: "false"
+
+      # Defines the relay band to use, helpful to auto-configure the frequencies to use. Possible values: eu868, ism2400. Defaults to eu868.
+      #RELAY_REGION: "eu868"
+
+      # Frequencies to use for relaying. If RELAY_REGION above is set these have correnponding defaults.
+      #RELAY_FREQUENCIES: 868100000,868300000,868500000
+
+      # Relay TX power. Defaults to 10dBm for ISM2400 band, 16dBm otherwise
+      #RELAY_TX_POWER: 16
+
+      # Modulation to use for relaying. Possible values: LORA, FSK. Defalts to LORA.
+      #RELAY_MODULATION: LORA
+      
+      # Spreading factor to use when relaying. Applies only to LORA modulation. Defaults to 7.
+      #RELAY_SF: 7
+      
+      # Bandwidth in Hz to use when relaying. Applies only to LORA modulation. Defaults to 125000 (125 kHz).
+      #RELAY_BANDWIDTH: 125000
+      
+      # Code-rate to use when relaying. Applies only to LORA modulation. Defaults to 4/5.
+      #RELAY_CODERATE: "4/5"
+      
+      # Bitrate to use when relaying. Applies only to FSK modulation. Defaults to 0.
+      #RELAY_FSK_BITRATE: 0
+      
+      # Socket name to connect to concentratord service listening/sending to end-devices.
+      #RELAY_SOCKET_DEVICES: "concentratord"
+      
+      # Socket name to connect to concentratord service listening/sending to other relay gateways or border gateways.
+      # Must support the RELAY_REGION or RELAY_FREQUENCIES above. Can be the same as RELAY_SOCKET_DEVICES.
+      #RELAY_SOCKET_RELAY: "concentratord"
+      
+      # Socket name to connect to chirpstack-mqtt-forwarder service in a border gateway.
+      #RELAY_SOCKET_FORWARDER: "forwarder"
