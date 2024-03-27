@@ -1,0 +1,80 @@
+services:
+
+  # This is a subGHz link to both end-devices and relay gateways
+  chirpstack-concentratord-slot1:
+    
+    container_name: chirpstack-concentratord-slot1
+    image: xoseperez/chirpstack-concentratord
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /tmp:/tmp
+    environment:
+      DEBUG: "INFO"
+      MODEL: "RAK5146"
+      INTERFACE: "SPI"
+      RESET_GPIO: 17
+      REGION: "eu868"
+      SOCKER_NAME: "slot1"
+
+  # The gateway-relay service handles both direct and relayed messages
+  # and exposes them the mqtt-forwarder services
+  # on the ipc:///tmp/forwader_[event|command] socket
+  chirpstack-gateway-relay:
+    
+    container_name: chirpstack-gateway-relay
+    image: xoseperez/chirpstack-gateway-relay
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - chirpstack-concentratord-slot1
+    volumes:
+      - /tmp:/tmp
+    environment:
+      LOGGING_LEVEL: "INFO"
+      RELAY_BORDER: "true"
+      RELAY_IGNORE_DIRECT: "true" # for testing: allow only relayed messages
+      RELAY_REGION: "eu868"
+      RELAY_TX_POWER: 16
+      RELAY_SOCKET_DEVICES: "slot1"
+      RELAY_SOCKET_RELAY: "slot1"
+      RELAY_SOCKET_FORWARDER: "forwarder"
+
+  # Sample mosquitto broker
+  # Use this one for testing purposes (set MQTT_JSON to true on the mqtt-forwarder service for debug)
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ../mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # Forwads messages to an MQTT broker
+  # You can use the included mosquitto service or connect it 
+  # directly to a ChirpStack LNS for full LoRaWAN support
+  chirpstack-mqtt-forwarder:
+    
+    container_name: chirpstack-mqtt-forwarder
+    image: xoseperez/chirpstack-mqtt-forwarder
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - chirpstack-gateway-relay
+      - mosquitto
+    volumes:
+      - /tmp:/tmp
+    environment:
+      LOGGING_LEVEL: "INFO"
+      MQTT_TOPIC_PREFIX: "eu868"
+      MQTT_SERVER: "tcp://mosquitto:1883" # for testing: send messages to local mosquitto instance
+      MQTT_JSON: "true" # for testing: send messages in plain text
+      #MQTT_USERNAME: ""
+      #MQTT_PASSWORD: ""
+      #MQTT_QOS: 0
+      #MQTT_CA_CERT_PATH: ""
+      #MQTT_CLIENT_CERT_PATH: ""
+      #MQTT_CLIENT_KEY_PATH: ""
+      BACKEND: "concentratord"
+      BACKEND_SOCKET_NAME: "forwarder"

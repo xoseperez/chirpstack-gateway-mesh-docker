@@ -1,0 +1,58 @@
+services:
+
+  # This is the subGHz link to end-devices
+  chirpstack-concentratord-slot1:
+    
+    container_name: chirpstack-concentratord-slot1
+    image: xoseperez/chirpstack-concentratord
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /tmp:/tmp
+    environment:
+      DEBUG: "INFO"
+      MODEL: "RAK5146"
+      INTERFACE: "SPI"
+      RESET_GPIO: 17
+      REGION: "eu868"
+      SOCKER_NAME: "slot1"
+
+  # This is the 2.4 GHz link between gateways
+  # Note: it can also be a second subGHz concentrator!
+  chirpstack-concentratord-slot2:
+    
+    container_name: chirpstack-concentratord-slot2
+    image: xoseperez/chirpstack-concentratord
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /tmp:/tmp
+    environment:
+      DEBUG: "INFO"
+      MODEL: "RAK5148"
+      INTERFACE: "USB"
+      REGION: "ism2400"
+      SOCKER_NAME: "slot2"
+
+  # The gateway-relay service relays messages 
+  # on the slot1 to other gateways via slot2
+  chirpstack-gateway-relay:
+    
+    container_name: chirpstack-gateway-relay
+    image: xoseperez/chirpstack-gateway-relay
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - chirpstack-concentratord-slot1
+      - chirpstack-concentratord-slot2
+    volumes:
+      - /tmp:/tmp
+    environment:
+      LOGGING_LEVEL: "INFO"
+      RELAY_BORDER: "false"
+      RELAY_IGNORE_DIRECT: "false"
+      RELAY_REGION: "ism2400" # if using a 2.4GHz concentrator on slot 2
+      RELAY_TX_POWER: 10 # max power for 2.4GHz is 10dBm (up to 16 for subGHz)
+      RELAY_SOCKET_DEVICES: "slot1"
+      RELAY_SOCKET_RELAY: "slot2"
+
