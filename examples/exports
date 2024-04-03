@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PGID_GPIO=$( grep ^gpio /etc/group | cut -d':' -f3 )
+PGID_I2C=$( grep ^i2c /etc/group | cut -d':' -f3 )
+PGID_SPI=$( grep ^spi /etc/group | cut -d':' -f3 )

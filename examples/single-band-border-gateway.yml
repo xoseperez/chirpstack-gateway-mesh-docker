@@ -1,41 +1,30 @@
 services:
 
-  # This is the subGHz link to end-devices
+  # This is a subGHz link to both end-devices and relay gateways
   chirpstack-concentratord-slot1:
     
     container_name: chirpstack-concentratord-slot1
     image: xoseperez/chirpstack-concentratord
     restart: unless-stopped
-    privileged: true
+    devices:
+      - /dev/ttyACM0
+    #  - /dev/spidev0.0
+    #  - /dev/gpiochip0
     volumes:
-      - /tmp:/tmp
+      - ipcfolder:/tmp
     environment:
       DEBUG: "INFO"
-      MODEL: "RAK5146"
-      INTERFACE: "SPI"
-      RESET_GPIO: 17
-      REGION: "eu868"
-      SOCKER_NAME: "slot1"
-
-  # This is the 2.4 GHz link between gateways
-  # Note: it can also be a second subGHz concentrator!
-  chirpstack-concentratord-slot2:
-    
-    container_name: chirpstack-concentratord-slot2
-    image: xoseperez/chirpstack-concentratord
-    restart: unless-stopped
-    privileged: true
-    volumes:
-      - /tmp:/tmp
-    environment:
-      DEBUG: "INFO"
-      MODEL: "RAK5148"
+      MODEL: "RAK7271"
       INTERFACE: "USB"
-      REGION: "ism2400"
-      SOCKER_NAME: "slot2"
+      REGION: "eu868"
+      SOCKET_NAME: "slot1"
+    #group_add:
+    #  - ${PGID_GPIO:-993}
+    #  - ${PGID_I2C:-994}
+    #  - ${PGID_SPI:-995}
 
-  # The gateway-relay service handles both concentratord instances
-  # and exposes the original messages to the mqtt-forwarder services
+  # The gateway-relay service handles both direct and relayed messages
+  # and exposes them the mqtt-forwarder services
   # on the ipc:///tmp/forwader_[event|command] socket
   chirpstack-gateway-relay:
     
@@ -45,17 +34,16 @@ services:
     privileged: true
     depends_on:
       - chirpstack-concentratord-slot1
-      - chirpstack-concentratord-slot2
     volumes:
-      - /tmp:/tmp
+      - ipcfolder:/tmp
     environment:
       LOGGING_LEVEL: "INFO"
       RELAY_BORDER: "true"
       RELAY_IGNORE_DIRECT: "true" # for testing: allow only relayed messages
-      RELAY_REGION: "ism2400" # if using a 2.4GHz concentrator on slot 2
-      RELAY_TX_POWER: 10 # max power for 2.4GHz is 10dBm (up to 16 for subGHz)
+      RELAY_REGION: "eu868"
+      RELAY_TX_POWER: 16
       RELAY_SOCKET_DEVICES: "slot1"
-      RELAY_SOCKET_RELAY: "slot2"
+      RELAY_SOCKET_RELAY: "slot1"
       RELAY_SOCKET_FORWARDER: "forwarder"
 
   # Sample mosquitto broker
@@ -67,7 +55,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ../mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
 
   # Forwads messages to an MQTT broker
   # You can use the included mosquitto service or connect it 
@@ -82,7 +70,8 @@ services:
       - chirpstack-gateway-relay
       - mosquitto
     volumes:
-      - /tmp:/tmp
+      - ipcfolder:/tmp
+      #- ./certs/:/certs/
     environment:
       LOGGING_LEVEL: "INFO"
       MQTT_TOPIC_PREFIX: "eu868"
@@ -91,8 +80,11 @@ services:
       #MQTT_USERNAME: ""
       #MQTT_PASSWORD: ""
       #MQTT_QOS: 0
-      #MQTT_CA_CERT_PATH: ""
-      #MQTT_CLIENT_CERT_PATH: ""
-      #MQTT_CLIENT_KEY_PATH: ""
+      #MQTT_CA_CERT_PATH: "/certs/ca.pem"
+      #MQTT_CLIENT_CERT_PATH: "/certs/cert.pem"
+      #MQTT_CLIENT_KEY_PATH: "/certs/key.pem"
       BACKEND: "concentratord"
       BACKEND_SOCKET_NAME: "forwarder"
+
+volumes:
+  ipcfolder:
