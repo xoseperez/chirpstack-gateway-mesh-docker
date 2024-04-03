@@ -13,22 +13,6 @@ MANIFEST_TOOL=manifest-tool
 MANIFEST_FILE=manifest.yaml
 
 # -----------------------------------------------------------------------------
-# Check dependencies
-# -----------------------------------------------------------------------------
-
-# Check we have buildx extension for docker
-if ! docker buildx version &> /dev/null; then
-  echo "ERROR: docker or docker buildx extension are not installed"
-  exit 1
-fi
-
-# Check we have the manifest modifier tool
-if ! hash ${MANIFEST_TOOL} &> /dev/null; then
-  echo "ERROR: ${MANIFEST_TOOL} could not be found!"
-    exit 1
-  fi
-
-# -----------------------------------------------------------------------------
 # Parse arguments
 # -----------------------------------------------------------------------------
 
@@ -40,6 +24,24 @@ while [[ $# -gt 0 ]]; do
   fi
   shift
 done
+
+# -----------------------------------------------------------------------------
+# Check dependencies
+# -----------------------------------------------------------------------------
+
+# Check we have buildx extension for docker
+if ! docker buildx version &> /dev/null; then
+  echo "ERROR: docker or docker buildx extension are not installed"
+  exit 1
+fi
+
+# Check we have the manifest modifier tool
+if [[ $PUSH -eq 1 ]]; then
+  if ! hash ${MANIFEST_TOOL} &> /dev/null; then
+    echo "ERROR: ${MANIFEST_TOOL} could not be found!"
+    exit 1
+  fi
+fi
 
 # -----------------------------------------------------------------------------
 # Export settings for builder

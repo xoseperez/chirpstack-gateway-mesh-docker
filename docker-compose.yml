@@ -17,7 +17,7 @@ services:
       #REGION: "EU868"
       #CHANNELS: "US915_0"
       #DEBUG: "INFO"
-      #SOCKER_NAME: "concentratord"
+      #SOCKET_NAME: "concentratord"
 
   chirpstack-gateway-relay:
     
