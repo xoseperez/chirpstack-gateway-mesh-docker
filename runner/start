@@ -24,7 +24,7 @@ replace_placeholder() {
 declare -A FREQUENCIES=(
     [eu868]="868100000,868300000,868500000"
     [us915]="902300000,902500000,902700000"
-    [ism2400]="2403000000"
+    [ism2400]="2403000000,2479000000,2425000000"
 )
 
 # -----------------------------------------------------------------------------
@@ -35,9 +35,14 @@ LOGGING_LEVEL=${LOGGING_LEVEL:-"INFO"}
 RELAY_BORDER=${RELAY_BORDER:-"false"}
 [[ "${RELAY_BORDER}" == "true" ]] && RELAY_IGNORE_DIRECT=${RELAY_IGNORE_DIRECT:-"false"} || RELAY_IGNORE_DIRECT="false"
 
-RELAY_REGION=${RELAY_REGION,,:-"eu868"}
-RELAY_FREQUENCIES=${FREQUENCIES[${RELAY_REGION}]:-$RELAY_FREQUENCIES}
-[[ "${RELAY_REGION}" == "ism2400" ]] && RELAY_TX_POWER=10 || RELAY_TX_POWER=16
+RELAY_REGION_DEVICES=${RELAY_REGION_DEVICES,,:-"eu868"}
+RELAY_REGION_RELAY=${RELAY_REGION_RELAY,,:-"eu868"}
+RELAY_FREQUENCIES=${RELAY_FREQUENCIES:-${FREQUENCIES[${RELAY_REGION_RELAY}]}}
+if [[ "${RELAY_REGION_RELAY}" == "ism2400" ]]; then
+    RELAY_TX_POWER=${RELAY_TX_POWER:-10}
+else
+    RELAY_TX_POWER=${RELAY_TX_POWER:-16}
+fi
 RELAY_MODULATION=${RELAY_MODULATION:-"LORA"}
 RELAY_SF=${RELAY_SF:-7}
 RELAY_BANDWIDTH=${RELAY_BANDWIDTH:-125000}
@@ -52,14 +57,14 @@ RELAY_SOCKET_FORWARDER=${RELAY_SOCKET_FORWARDER:-"forwarder"}
 # Check
 # -----------------------------------------------------------------------------
 
-if [[ ! -f "./region_${RELAY_REGION}.toml" ]]; then
-    echo "Unknown region ${RELAY_REGION}, you must set a valid RELAY_REGION"
+if [[ ! -f "./region_${RELAY_REGION_DEVICES}.toml" ]]; then
+    echo "Unknown region ${RELAY_REGION_DEVICES}, you must set a valid RELAY_REGION_DEVICES"
     sleep 5
     exit 1
 fi
 
 if [[ -z "${RELAY_FREQUENCIES}" ]]; then
-    echo "You must set either a valid RELAY_REGION or a list of RELAY_FREQUENCIES"
+    echo "You must set either a valid RELAY_REGION_RELAY or a list of RELAY_FREQUENCIES"
     sleep 5
     exit 1
 fi 
@@ -100,6 +105,7 @@ echo -e "${COLOR_INFO}----------------------------------------------------------
 echo -e "${COLOR_INFO}Logging level:             ${LOGGING_LEVEL}"
 echo -e "${COLOR_INFO}Border gateway:            ${RELAY_BORDER}"
 echo -e "${COLOR_INFO}Ignore direct messages:    ${RELAY_IGNORE_DIRECT}"
+echo -e "${COLOR_INFO}Relaying for:              ${RELAY_REGION_DEVICES}"
 echo -e "${COLOR_INFO}Relay frequences:          ${RELAY_FREQUENCIES}"
 echo -e "${COLOR_INFO}Relay TX power:            ${RELAY_TX_POWER}"
 echo -e "${COLOR_INFO}Relay modulation:          ${RELAY_MODULATION}"
@@ -138,4 +144,4 @@ while [[ ! -S "/tmp/${RELAY_SOCKET_RELAY}_event" ]]; do sleep 1; done
 # -----------------------------------------------------------------------------
 # Start gateway-relay
 # -----------------------------------------------------------------------------
-./chirpstack-gateway-relay -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION}.toml"
+./chirpstack-gateway-relay -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION_DEVICES}.toml"
