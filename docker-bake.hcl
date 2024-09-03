@@ -1,6 +1,6 @@
 variable "VERSION" { default = "latest" }
 variable "BUILD_DATE" { default = "" }
-variable "REGISTRY" { default = "xoseperez/chirpstack-gateway-relay" }
+variable "REGISTRY" { default = "xoseperez/chirpstack-gateway-mesh" }
 
 group "default" {
     targets = ["armv7hf", "aarch64", "amd64"]

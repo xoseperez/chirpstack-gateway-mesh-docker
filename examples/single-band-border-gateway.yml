@@ -23,13 +23,13 @@ services:
     #  - ${PGID_I2C:-994}
     #  - ${PGID_SPI:-995}
 
-  # The gateway-relay service handles both direct and relayed messages
+  # The gateway-mesh service handles both direct and relayed messages
   # and exposes them the mqtt-forwarder services
   # on the ipc:///tmp/forwader_[event|command] socket
-  chirpstack-gateway-relay:
+  chirpstack-gateway-mesh:
     
-    container_name: chirpstack-gateway-relay
-    image: xoseperez/chirpstack-gateway-relay
+    container_name: chirpstack-gateway-mesh
+    image: xoseperez/chirpstack-gateway-mesh
     restart: unless-stopped
     privileged: true
     depends_on:
@@ -39,6 +39,8 @@ services:
     environment:
       LOGGING_LEVEL: "INFO"
       RELAY_BORDER: "true"
+      RELAY_SIGNING_KEY: "00000000000000000000000000000000"
+      RELAY_MAX_HOP_COUNT: 1
       RELAY_IGNORE_DIRECT: "true" # for testing: allow only relayed messages
       RELAY_REGION: "eu868"
       RELAY_TX_POWER: 16
@@ -67,7 +69,7 @@ services:
     restart: unless-stopped
     privileged: true
     depends_on:
-      - chirpstack-gateway-relay
+      - chirpstack-gateway-mesh
       - mosquitto
     volumes:
       - ipcfolder:/tmp

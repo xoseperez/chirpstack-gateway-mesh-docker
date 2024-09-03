@@ -18,16 +18,31 @@
   # When set to true, log messages are being written to syslog instead of stdout.
   log_to_syslog=false
 
-
-# Relay configuration.
-[relay]
+# Mesh configuration.
+[mesh]
+  # Signing key (AES128, HEX encoded).
+  #
+  # This key is used to sign and validate each mesh packet. This key must be
+  # configured on every Border / Relay gateway equally.
+  signing_key="{{RELAY_SIGNING_KEY}}"
 
   # Border Gateway.
   #
-  # If this is set to true, then the ChirpStack Gateway Relay will consider
+  # If this is set to true, then the ChirpStack Gateway Mesh will consider
   # this gateway as a Border Gateway, meaning that it will unwrap relayed
   # uplinks and forward these to the proxy API, rather than relaying these.
   border_gateway={{RELAY_BORDER}}
+
+  # Heartbeat interval (Relay Gateway only).
+  #
+  # This defines the interval in which a Relay Gateway (border_gateway=false)
+  # will emit heartbeat messages.
+  heartbeat_interval="5m"
+
+  # Max hop count.
+  #
+  # This defines the maximum number of hops a relayed payload will pass.
+  max_hop_count={{RELAY_MAX_HOP_COUNT}}
 
   # Ignore direct uplinks (Border Gateway).
   #
@@ -37,9 +52,9 @@
   # Gateway.
   border_gateway_ignore_direct_uplinks={{RELAY_IGNORE_DIRECT}}
 
-  # Relay frequencies.
+  # Mesh frequencies.
   #
-  # The ChirpStack Gateway Relay will randomly use one of the configured
+  # The ChirpStack Gateway Mesh will randomly use one of the configured
   # frequencies when relaying uplink and downlink messages.
   frequencies=[{{RELAY_FREQUENCIES}}]
 
@@ -51,7 +66,7 @@
   # Data-rate properties.
   #
   # The data-rate properties when relaying uplink and downlink messages.
-  [relay.data_rate]
+  [mesh.data_rate]
   
     # Modulation.
     #
@@ -73,7 +88,7 @@
 
   # Proxy API configuration.
   #
-  # If the Gateway Relay is configured to operate as Border Gateway. It
+  # If the gateway is configured to operate as Border Gateway. It
   # will unwrap relayed uplink frames, and will wrap downlink payloads that
   # must be relayed. In this case the ChirpStack MQTT Forwarder must be
   # configured to use the proxy API instead of the Concentratord API.
@@ -84,7 +99,7 @@
   #
   # This configuration is only used when the border_gateway option is set
   # to true.
-  [relay.proxy_api]
+  [mesh.proxy_api]
 
     # Event PUB socket bind.
     event_bind="ipc:///tmp/{{RELAY_SOCKET_FORWARDER}}_event"
@@ -96,7 +111,7 @@
 # Backend configuration.
 [backend]
 
-  # ChirpStack Concentratord configuration (Relay <> End Device).
+  # ChirpStack Concentratord configuration (end-device communication).
   [backend.concentratord]
 
     # Event API URL.
@@ -106,12 +121,13 @@
     command_url="ipc:///tmp/{{RELAY_SOCKET_DEVICES}}_command"
 
 
-  # ChirpStack Concentratord configuration (Relay <> Relay).
+  # ChirpStack Concentratord configuration (mesh communication).
   #
   # While not required, this configuration makes it possible to use a different
-  # Concentratord instance for the Relay <> Relay communication. E.g. this
-  # makes it possible to use ISM2400 for Relay <> Relay communication.
-  [backend.relay_concentratord]
+  # Concentratord instance for the mesh communication. E.g. this
+  # makes it possible to use ISM2400 for mesh communication and EU868 for
+  # communication with the end-devices.
+  [backend.mesh_concentratord]
 
     # Event API URL.
     event_url="ipc:///tmp/{{RELAY_SOCKET_RELAY}}_event"

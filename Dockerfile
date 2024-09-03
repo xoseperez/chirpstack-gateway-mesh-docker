@@ -11,7 +11,7 @@ ARG VERSION
 ARG BUILD_DATE
 ARG WORKDIR=/opt/chirpstack
 ARG OWNER=xoseperez
-ARG FILE=chirpstack-gateway-relay
+ARG FILE=chirpstack-gateway-mesh
 ARG DOWNLOAD_FROM=https://github.com/${OWNER}/${FILE}/releases/download
 
 # Dependencies

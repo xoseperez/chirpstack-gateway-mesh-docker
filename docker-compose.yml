@@ -19,19 +19,19 @@ services:
       #DEBUG: "INFO"
       #SOCKET_NAME: "concentratord"
 
-  chirpstack-gateway-relay:
+  chirpstack-gateway-mesh:
     
-    container_name: chirpstack-gateway-relay
+    container_name: chirpstack-gateway-mesh
 
     # use pre-defined image
-    image: xoseperez/chirpstack-gateway-relay
+    image: xoseperez/chirpstack-gateway-mesh
 
     # or comment out image: and build it yourself
     #build:
     #  context: .
     #  args:
     #    ARCH: amd64
-    #    VERSION: 4.0.0-test.9
+    #    VERSION: 4.0.0
 
     restart: unless-stopped
     privileged: true

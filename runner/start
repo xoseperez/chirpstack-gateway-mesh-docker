@@ -32,6 +32,8 @@ declare -A FREQUENCIES=(
 # -----------------------------------------------------------------------------
 
 LOGGING_LEVEL=${LOGGING_LEVEL:-"INFO"}
+RELAY_SIGNING_KEY=${RELAY_SIGNING_KEY:-"00000000000000000000000000000000"}
+RELAY_MAX_HOP_COUNT=${RELAY_MAX_HOP_COUNT:-1}
 RELAY_BORDER=${RELAY_BORDER:-"false"}
 [[ "${RELAY_BORDER}" == "true" ]] && RELAY_IGNORE_DIRECT=${RELAY_IGNORE_DIRECT:-"false"} || RELAY_IGNORE_DIRECT="false"
 
@@ -76,10 +78,12 @@ fi
 CONFIG_FILE=./config.toml
 
 # Copy template
-cp chirpstack-gateway-relay.toml.template "${CONFIG_FILE}"
+cp chirpstack-gateway-mesh.toml.template "${CONFIG_FILE}"
 
 # Replace values
 replace_placeholder "${CONFIG_FILE}" "LOGGING_LEVEL" "${LOGGING_LEVEL}"
+replace_placeholder "${CONFIG_FILE}" "RELAY_SIGNING_KEY" "${RELAY_SIGNING_KEY}"
+replace_placeholder "${CONFIG_FILE}" "RELAY_MAX_HOP_COUNT" "${RELAY_MAX_HOP_COUNT}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_BORDER" "${RELAY_BORDER}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_IGNORE_DIRECT" "${RELAY_IGNORE_DIRECT}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_FREQUENCIES" "${RELAY_FREQUENCIES}"
@@ -99,7 +103,7 @@ replace_placeholder "${CONFIG_FILE}" "RELAY_SOCKET_RELAY" "${RELAY_SOCKET_RELAY}
 
 echo
 echo -e "${COLOR_INFO}------------------------------------------------------------------"
-echo -e "${COLOR_INFO}$( ./chirpstack-gateway-relay -V )"
+echo -e "${COLOR_INFO}$( ./chirpstack-gateway-mesh -V )"
 echo -e "${COLOR_INFO}LoRa(WAN) Gateway Relay Service"
 echo -e "${COLOR_INFO}------------------------------------------------------------------"
 echo -e "${COLOR_INFO}Logging level:             ${LOGGING_LEVEL}"
@@ -122,8 +126,8 @@ if [[ "${RELAY_BORDER}" == "true" ]]; then
 echo -e "${COLOR_INFO}Forwarder socket name:     ${RELAY_SOCKET_FORWARDER}"
 fi
 echo -e "${COLOR_INFO}------------------------------------------------------------------"
-echo -e "${COLOR_INFO}Resources: https://www.chirpstack.io/docs/chirpstack-gateway-relay"
-echo -e "${COLOR_INFO}           https://github.com/chirpstack/chirpstack-gateway-relay"
+echo -e "${COLOR_INFO}Resources: https://www.chirpstack.io/docs/chirpstack-gateway-mesh"
+echo -e "${COLOR_INFO}           https://github.com/chirpstack/chirpstack-gateway-mesh"
 echo -e "${COLOR_INFO}------------------------------------------------------------------"
 echo -e "${COLOR_RESET}"
 
@@ -142,6 +146,6 @@ while [[ ! -S "/tmp/${RELAY_SOCKET_DEVICES}_event" ]]; do sleep 1; done
 while [[ ! -S "/tmp/${RELAY_SOCKET_RELAY}_event" ]]; do sleep 1; done
 
 # -----------------------------------------------------------------------------
-# Start gateway-relay
+# Start gateway-mesh
 # -----------------------------------------------------------------------------
-./chirpstack-gateway-relay -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION_DEVICES}.toml"
+./chirpstack-gateway-mesh -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION_DEVICES}.toml"

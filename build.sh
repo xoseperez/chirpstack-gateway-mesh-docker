@@ -6,7 +6,7 @@
 # Globals
 # -----------------------------------------------------------------------------
 
-VERSION="4.0.0-test.9"
+VERSION="4.0.0"
 PUSH=0
 TARGETS=()
 MANIFEST_TOOL=manifest-tool
@@ -48,7 +48,7 @@ fi
 # -----------------------------------------------------------------------------
 
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-REGISTRY=${REGISTRY:-"xoseperez/chirpstack-gateway-relay"}
+REGISTRY=${REGISTRY:-"xoseperez/chirpstack-gateway-mesh"}
 UPSTREAM_VERSION=${VERSION%-*}
 UPSTREAM_MAJOR=${VERSION%%.*}
 
