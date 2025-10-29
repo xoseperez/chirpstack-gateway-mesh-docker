@@ -21,7 +21,7 @@ RUN apk add --no-cache bash
 WORKDIR ${WORKDIR}
 
 # Checkout and compile remote code
-ADD --chmod=666 ${DOWNLOAD_FROM}/${VERSION}/${FILE}_${VERSION}_${ARCH}.tar.gz ${FILE}.tar.gz
+ADD --chmod=666 ${DOWNLOAD_FROM}/v${VERSION}/${FILE}_${VERSION}_${ARCH}.tar.gz ${FILE}.tar.gz
 RUN tar -xf ${FILE}.tar.gz && rm ${FILE}.tar.gz
 
 # Copy fles from builder and repo

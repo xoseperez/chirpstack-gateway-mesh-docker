@@ -37,7 +37,7 @@
   #
   # This defines the interval in which a Relay Gateway (border_gateway=false)
   # will emit heartbeat messages.
-  heartbeat_interval="5m"
+  heartbeat_interval="{{RELAY_HEARTBEAT_INTERVAL}}"
 
   # Max hop count.
   #

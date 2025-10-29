@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.1 (2025-10-29)
+
+* Based on 4.1.1 binaries
+* Fix issues
+* Add RELAY_HEARTBEAT_INTERVAL
+
 ## 4.0.0 (2024-09-03)
 
 * Based on 4.0.0 binaries

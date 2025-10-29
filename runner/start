@@ -34,11 +34,14 @@ declare -A FREQUENCIES=(
 LOGGING_LEVEL=${LOGGING_LEVEL:-"INFO"}
 RELAY_SIGNING_KEY=${RELAY_SIGNING_KEY:-"00000000000000000000000000000000"}
 RELAY_MAX_HOP_COUNT=${RELAY_MAX_HOP_COUNT:-1}
+RELAY_HEARTBEAT_INTERVAL=${RELAY_HEARTBEAT_INTERVAL:-"5m"}
 RELAY_BORDER=${RELAY_BORDER:-"false"}
 [[ "${RELAY_BORDER}" == "true" ]] && RELAY_IGNORE_DIRECT=${RELAY_IGNORE_DIRECT:-"false"} || RELAY_IGNORE_DIRECT="false"
 
-RELAY_REGION_DEVICES=${RELAY_REGION_DEVICES,,:-"eu868"}
-RELAY_REGION_RELAY=${RELAY_REGION_RELAY,,:-"eu868"}
+RELAY_REGION_DEVICES=${RELAY_REGION_DEVICES:-"eu868"}
+RELAY_REGION_RELAY=${RELAY_REGION_RELAY:-"eu868"}
+RELAY_REGION_DEVICES=${RELAY_REGION_DEVICES,,}
+RELAY_REGION_RELAY=${RELAY_REGION_RELAY,,}
 RELAY_FREQUENCIES=${RELAY_FREQUENCIES:-${FREQUENCIES[${RELAY_REGION_RELAY}]}}
 if [[ "${RELAY_REGION_RELAY}" == "ism2400" ]]; then
     RELAY_TX_POWER=${RELAY_TX_POWER:-10}
@@ -84,6 +87,7 @@ cp chirpstack-gateway-mesh.toml.template "${CONFIG_FILE}"
 replace_placeholder "${CONFIG_FILE}" "LOGGING_LEVEL" "${LOGGING_LEVEL}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_SIGNING_KEY" "${RELAY_SIGNING_KEY}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_MAX_HOP_COUNT" "${RELAY_MAX_HOP_COUNT}"
+replace_placeholder "${CONFIG_FILE}" "RELAY_HEARTBEAT_INTERVAL" "${RELAY_HEARTBEAT_INTERVAL}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_BORDER" "${RELAY_BORDER}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_IGNORE_DIRECT" "${RELAY_IGNORE_DIRECT}"
 replace_placeholder "${CONFIG_FILE}" "RELAY_FREQUENCIES" "${RELAY_FREQUENCIES}"
@@ -108,6 +112,7 @@ echo -e "${COLOR_INFO}LoRa(WAN) Gateway Relay Service"
 echo -e "${COLOR_INFO}------------------------------------------------------------------"
 echo -e "${COLOR_INFO}Logging level:             ${LOGGING_LEVEL}"
 echo -e "${COLOR_INFO}Border gateway:            ${RELAY_BORDER}"
+echo -e "${COLOR_INFO}Heartbeat interval:        ${RELAY_HEARTBEAT_INTERVAL}"
 echo -e "${COLOR_INFO}Ignore direct messages:    ${RELAY_IGNORE_DIRECT}"
 echo -e "${COLOR_INFO}Relaying for:              ${RELAY_REGION_DEVICES}"
 echo -e "${COLOR_INFO}Relay frequences:          ${RELAY_FREQUENCIES}"
@@ -148,4 +153,4 @@ while [[ ! -S "/tmp/${RELAY_SOCKET_RELAY}_event" ]]; do sleep 1; done
 # -----------------------------------------------------------------------------
 # Start gateway-mesh
 # -----------------------------------------------------------------------------
-./chirpstack-gateway-mesh -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION_DEVICES}.toml"
+exec ./chirpstack-gateway-mesh -c "${CONFIG_FILE}" -c "./region_${RELAY_REGION_DEVICES}.toml"
